@@ -8,7 +8,18 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ==================== AUTH ====================
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
 
 model User {
   id            String    @id @default(cuid())
@@ -62,91 +73,58 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ==================== PRODUCTS ====================
-
 model Category {
   id        String    @id @default(cuid())
   name      String    @unique
   slug      String    @unique
-  image     String?
   createdAt DateTime  @default(now())
-
-  products Product[]
+  products  Product[]
 }
 
 model Product {
-  id            String   @id @default(cuid())
-  name          String
-  slug          String   @unique
-  description   String   @db.Text
-  price         Float
-  originalPrice Float?
-  image         String
-  stock         Int      @default(0)
-  isNew         Boolean  @default(false)
-  isBestSeller  Boolean  @default(false)
-  rating        Float    @default(0)
-  reviewCount   Int      @default(0)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  price       Float
+  image       String?
+  stock       Int      @default(0)
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  categoryId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  categoryId String
-  category   Category    @relation(fields: [categoryId], references: [id])
+  category   Category?   @relation(fields: [categoryId], references: [id])
   orderItems OrderItem[]
 }
 
-// ==================== ORDERS ====================
-
 model Order {
-  id          String      @id @default(cuid())
-  orderNumber String      @unique @default(cuid())
-  status      OrderStatus @default(PENDING)
-  totalAmount Float
-  shippingFee Float       @default(0)
+  id         String      @id @default(cuid())
+  userId     String?
+  email      String
+  phone      String?
+  firstName  String
+  lastName   String
+  address    String
+  district   String
+  province   String
+  postalCode String
+  total      Float
+  status     OrderStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
-  // Shipping info
-  firstName   String
-  lastName    String
-  email       String
-  phone       String
-  address     String
-  district    String
-  province    String
-  postalCode  String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  items OrderItem[]
+  user       User?       @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
 }
 
 model OrderItem {
   id        String  @id @default(cuid())
+  orderId   String
+  productId String
   quantity  Int
   price     Float
 
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-}
-
-// ==================== ENUMS ====================
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 }

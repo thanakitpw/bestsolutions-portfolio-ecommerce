@@ -79,6 +79,7 @@ export default function NavbarClient({ user }: { user: SessionUser | null }) {
                 )}
               </button>
 
+
               {/* User Menu */}
               {user ? (
                 <div className="relative" ref={menuRef}>

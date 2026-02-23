@@ -1,14 +1,18 @@
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Truck, RotateCcw, ShieldCheck, Star } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { getFeaturedProducts, categories, products } from "@/data/mock";
 import { formatPrice } from "@/lib/utils";
-import AddToCartButton from "@/components/ui/AddToCartButton";
+import AddToCartButton from "@/components/product/AddToCartButton";
 
-export default function Home() {
-  const featured = getFeaturedProducts(4);
+export default async function Home() {
+  const [featured, allProducts, categories] = await Promise.all([
+    prisma.product.findMany({ where: { isActive: true, isFeatured: true }, include: { category: true }, take: 4, orderBy: { createdAt: "desc" } }),
+    prisma.product.findMany({ where: { isActive: true }, include: { category: true }, take: 8, orderBy: { createdAt: "desc" } }),
+    prisma.category.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   const heroCategories = [
     {
@@ -177,48 +181,27 @@ export default function Home() {
               {featured.map((product) => (
                 <div key={product.id} className="bg-white rounded-2xl overflow-hidden group shadow-sm hover:shadow-md transition-shadow">
                   <Link href={`/product/${product.id}`} className="block relative aspect-square overflow-hidden bg-[var(--muted)]">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                    {product.image && (
+                      <Image src={product.image} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                    )}
                     <div className="absolute top-3 left-3 flex gap-1.5">
-                      {product.isNew && (
-                        <span className="bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                          ใหม่
-                        </span>
-                      )}
-                      {product.isBestSeller && (
-                        <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                          ขายดี
-                        </span>
+                      {product.isFeatured && (
+                        <span className="bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold px-2 py-0.5 rounded-full">แนะนำ</span>
                       )}
                     </div>
                   </Link>
                   <div className="p-4">
                     <Link href={`/product/${product.id}`}>
-                      <p className="text-xs text-[var(--muted-foreground)] mb-1">{product.category}</p>
-                      <h3 className="font-semibold text-sm leading-snug line-clamp-2 hover:underline underline-offset-2">
-                        {product.name}
-                      </h3>
+                      <p className="text-xs text-[var(--muted-foreground)] mb-1">{product.category?.name ?? ""}</p>
+                      <h3 className="font-semibold text-sm leading-snug line-clamp-2 hover:underline underline-offset-2">{product.name}</h3>
                     </Link>
                     <div className="flex items-center gap-1 mt-1.5">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs text-[var(--muted-foreground)]">
-                        {product.rating} ({product.reviewCount})
-                      </span>
+                      <span className="text-xs text-[var(--muted-foreground)]">4.8</span>
                     </div>
                     <div className="flex items-center justify-between mt-3">
-                      <div>
-                        <span className="font-bold text-sm">{formatPrice(product.price)}</span>
-                        {product.originalPrice && (
-                          <span className="text-xs text-[var(--muted-foreground)] line-through ml-1.5">
-                            {formatPrice(product.originalPrice)}
-                          </span>
-                        )}
-                      </div>
-                      <AddToCartButton product={product} />
+                      <span className="font-bold text-sm">{formatPrice(product.price)}</span>
+                      <AddToCartButton product={product} iconOnly />
                     </div>
                   </div>
                 </div>
@@ -237,26 +220,16 @@ export default function Home() {
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
-              {products.map((product) => (
+              {allProducts.map((product) => (
                 <div key={product.id} className="group">
                   <Link href={`/product/${product.id}`} className="block relative aspect-square rounded-xl overflow-hidden bg-[var(--muted)] mb-3">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    {product.originalPrice && (
-                      <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        ลด {Math.round((1 - product.price / product.originalPrice) * 100)}%
-                      </span>
+                    {product.image && (
+                      <Image src={product.image} alt={product.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
                     )}
                   </Link>
                   <Link href={`/product/${product.id}`}>
-                    <p className="text-xs text-[var(--muted-foreground)]">{product.category}</p>
-                    <h3 className="text-sm font-medium mt-0.5 line-clamp-1 hover:underline underline-offset-2">
-                      {product.name}
-                    </h3>
+                    <p className="text-xs text-[var(--muted-foreground)]">{product.category?.name ?? ""}</p>
+                    <h3 className="text-sm font-medium mt-0.5 line-clamp-1 hover:underline underline-offset-2">{product.name}</h3>
                   </Link>
                   <p className="text-sm font-bold mt-1">{formatPrice(product.price)}</p>
                 </div>

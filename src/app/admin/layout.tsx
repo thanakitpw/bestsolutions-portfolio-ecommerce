@@ -1,66 +1,67 @@
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Package, Users, ShoppingCart, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, ArrowLeft } from "lucide-react";
 
-const adminLinks = [
-  { href: "/admin", label: "ภาพรวม", icon: LayoutDashboard, exact: true },
-  { href: "/admin/products", label: "จัดการสินค้า", icon: Package },
-  { href: "/admin/orders", label: "คำสั่งซื้อ", icon: ShoppingCart },
-  { href: "/admin/users", label: "จัดการผู้ใช้", icon: Users },
-];
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "ADMIN") redirect("/");
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const navItems = [
+    { href: "/admin", label: "ภาพรวม", icon: LayoutDashboard },
+    { href: "/admin/products", label: "สินค้า", icon: Package },
+    { href: "/admin/orders", label: "คำสั่งซื้อ", icon: ShoppingCart },
+    { href: "/admin/users", label: "ผู้ใช้งาน", icon: Users },
+  ];
+
   return (
-    <div className="flex min-h-screen bg-[var(--muted)]">
+    <div className="flex min-h-screen bg-[var(--background)]">
       {/* Sidebar */}
-      <aside className="w-60 bg-[var(--foreground)] text-white flex-shrink-0 hidden md:flex flex-col">
-        <div className="px-6 py-5 border-b border-white/10">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            LUXE<span className="text-white/50">.</span>
+      <aside className="hidden md:flex w-60 flex-col bg-white border-r border-[var(--border)] fixed inset-y-0">
+        <div className="p-5 border-b border-[var(--border)]">
+          <Link href="/" className="text-lg font-bold tracking-tight">
+            LUXE<span className="text-[var(--muted-foreground)]">.</span>
           </Link>
-          <p className="text-xs text-white/50 mt-0.5">Admin Dashboard</p>
+          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Admin Dashboard</p>
         </div>
-
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {adminLinks.map((link) => (
+        <nav className="flex-1 p-3 space-y-1">
+          {navItems.map(({ href, label, icon: Icon }) => (
             <Link
-              key={link.href}
-              href={link.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              key={href}
+              href={href}
+              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
             >
-              <link.icon className="h-4 w-4" />
-              {link.label}
+              <Icon className="h-4 w-4" />
+              {label}
             </Link>
           ))}
         </nav>
-
-        <div className="px-3 py-4 border-t border-white/10">
+        <div className="p-3 border-t border-[var(--border)]">
           <Link
             href="/"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2 px-3 py-2.5 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-xl hover:bg-[var(--muted)] transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" /> กลับหน้าเว็บ
+            <ArrowLeft className="h-4 w-4" /> กลับหน้าหลัก
           </Link>
         </div>
       </aside>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile top bar */}
-        <div className="md:hidden bg-[var(--foreground)] text-white px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-lg font-bold">LUXE.</Link>
-          <div className="flex items-center gap-3">
-            {adminLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="text-white/70 hover:text-white">
-                <link.icon className="h-5 w-5" />
-              </Link>
-            ))}
-          </div>
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-[var(--border)] px-4 py-3 flex items-center gap-4">
+        <Link href="/" className="text-lg font-bold">LUXE.</Link>
+        <div className="flex gap-2 overflow-x-auto">
+          {navItems.map(({ href, label }) => (
+            <Link key={href} href={href} className="text-xs font-medium px-3 py-1.5 rounded-lg bg-[var(--muted)] whitespace-nowrap">
+              {label}
+            </Link>
+          ))}
         </div>
-
-        <main className="flex-1 p-6 md:p-8 overflow-auto">
-          {children}
-        </main>
       </div>
+
+      {/* Main content */}
+      <main className="flex-1 md:ml-60 p-6 md:p-8 pt-20 md:pt-8">
+        {children}
+      </main>
     </div>
   );
 }
