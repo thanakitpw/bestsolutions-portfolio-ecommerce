@@ -1,30 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, CheckCircle2, CreditCard, Lock } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
+import { createOrder } from "@/actions/order";
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCartStore();
   const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const subtotal = getTotalPrice();
   const shipping = subtotal >= 500 ? 0 : 50;
   const total = subtotal + shipping;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const cartItems = items.map(({ product, quantity }) => ({
+        product: { id: String(product.id), price: product.price },
+        quantity,
+      }));
+      await createOrder(formData, cartItems);
       setSuccess(true);
       clearCart();
-    }, 1800);
+    });
   };
 
   if (success) {
@@ -270,10 +275,10 @@ export default function CheckoutPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isPending}
                 className="w-full py-4 bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? (
+                {isPending ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     กำลังดำเนินการ...
