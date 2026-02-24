@@ -219,6 +219,18 @@ export default function CheckoutPage() {
                     <Lock className="h-3 w-3" /> ปลอดภัย SSL
                   </div>
                 </div>
+
+                {/* Demo hint */}
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 space-y-1.5">
+                  <p className="text-xs font-semibold text-amber-800">🧪 Demo Mode — ใช้ข้อมูลทดสอบด้านล่างได้เลย</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-amber-700 font-mono">
+                    <span>หมายเลขบัตร</span><span className="font-semibold">4242 4242 4242 4242</span>
+                    <span>วันหมดอายุ</span><span className="font-semibold">12/30</span>
+                    <span>CVV</span><span className="font-semibold">123</span>
+                    <span>ชื่อบนบัตร</span><span className="font-semibold">DEMO USER</span>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1.5">
                     หมายเลขบัตร <span className="text-red-500">*</span>
@@ -227,7 +239,7 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       required
-                      placeholder="1234 5678 9012 3456"
+                      placeholder="4242 4242 4242 4242"
                       maxLength={19}
                       className="w-full px-4 py-2.5 pl-11 border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
                     />
@@ -242,7 +254,7 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       required
-                      placeholder="MM/YY"
+                      placeholder="12/30"
                       maxLength={5}
                       className="w-full px-4 py-2.5 border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
                     />
@@ -267,7 +279,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
-                    placeholder="ชื่อ-นามสกุล ภาษาอังกฤษ"
+                    placeholder="DEMO USER"
                     className="w-full px-4 py-2.5 border border-[var(--border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
                   />
                 </div>
