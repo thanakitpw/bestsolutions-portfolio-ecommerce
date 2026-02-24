@@ -17,9 +17,14 @@ type SessionUser = {
 export default function NavbarClient({ user }: { user: SessionUser | null }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { openCart, getTotalItems } = useCartStore();
-  const totalItems = getTotalItems();
+  const totalItems = mounted ? getTotalItems() : 0;
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
